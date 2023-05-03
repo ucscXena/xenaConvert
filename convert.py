@@ -65,7 +65,7 @@ def buildsjson_cluster(output, cluster_meta, cohort, label = None):
         J['label'] = os.path.basename(output)
     J['cohort'] = cohort
     J['version'] = datetime.date.today().isoformat()
-    J['cellCluster'] = cluster_meta
+    J['cluster'] = cluster_meta
     json.dump(J, fout, indent = 4)
     fout.close()
 
@@ -170,22 +170,22 @@ def adataToMap(adata, path, studyName):
             cols =[]
             if map == 'X_umap':
                 mapName = "umap"
-                dataSubType = 'embedding'
+                map_type = 'embedding'
                 label = 'umap'
                 map_file = 'umap.tsv'
             elif map == 'X_tsne':
                 mapName = "tsne"
-                dataSubType = 'embedding'
+                map_type = 'embedding'
                 label = 'tsne'
                 map_file =  'tsne.tsv'
             elif map == 'X_spatial':
                 mapName = 'spatial_map'
-                dataSubType = 'spatial'
+                map_type = 'spatial'
                 label = 'spatial map'
                 map_file =  'spatial_map.tsv'
             elif map == 'spatial': # visium
                 mapName = 'spatial_map'
-                dataSubType = 'spatial'
+                map_type = 'spatial'
                 label = 'spatial map'
                 map_file =  'spatial_map.tsv'
             else:
@@ -205,7 +205,7 @@ def adataToMap(adata, path, studyName):
             df = df.set_index(adata.obs.index)
             df_meta = [{
                 'label': label,
-                'type': dataSubType,
+                'type': map_type,
                 'dimension':cols
             }]
 
