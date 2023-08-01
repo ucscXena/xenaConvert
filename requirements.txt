@@ -1,6 +1,5 @@
 pandas
 scanpy
-umap
 umap-learn
 leidenalg
 louvain
