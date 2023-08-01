@@ -1,4 +1,4 @@
 # xenaConvert
 
 ## Installation
-pip install 'git+
+pip install 'git+https://github.com/ucscXena/xenaConvert.git'
