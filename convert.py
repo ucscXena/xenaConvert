@@ -210,7 +210,6 @@ def adataToMap(adata, path, studyName):
             }]
 
             df.to_csv(join(path, map_file), sep='\t')
-            map_type = dataSubType
             buildsjson_map(join(path, map_file), map_type, df_meta, studyName, label)
 
 
