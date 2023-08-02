@@ -226,7 +226,7 @@ def adataToCluster (adata, path, studyName, assayDataset):
             assay = 'scanpy leiden'
             assayDataset = assayDataset
             assayDatasetLabel = 'scRNA-seq'
-            assayParameter = 'default parameter'
+            assayParameter = 'sc.tl.leiden(adata)'
 
         elif cluster == 'louvain':
             df['louvain'] = adata.obs['louvain']
@@ -234,7 +234,7 @@ def adataToCluster (adata, path, studyName, assayDataset):
             assay = 'scanpy louvain'
             assayDataset = assayDataset
             assayDatasetLabel = 'scRNA-seq'
-            assayParameter = 'default parameter'
+            assayParameter = 'sc.tl.louvain(adata)'
         else:
             continue
 
@@ -243,7 +243,7 @@ def adataToCluster (adata, path, studyName, assayDataset):
             'assay': assay,
             'assayParameter': assayParameter,
             'assayDataset': {
-                'host': './',
+                'host': '.',
                 'name': assayDataset
             },
             'assayDatasetLabel': assayDatasetLabel
