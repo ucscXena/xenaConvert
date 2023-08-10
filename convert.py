@@ -161,12 +161,7 @@ def adataToXena(adata, path, studyName, transpose = True, metaPara = None, geneC
     assayDataset = expfile
     adataToCluster(adata, path, studyName, assayDataset)  
 
-def adataToMetadata (adata, path, studyName):
-    df = pd.DataFrame()
-    metafile = 'meta.tsv'
-    adata.obs.loc[:, ~adata.var.columns.isin(['leiden', 'louvain'])].to_csv(metaName, sep='\t')
-    buildsjson_phenotype(metaName, studyName, label="cell metadata")
-
+# export tsne, umap and spatial map coordinates (if any exists) to tsv file
 def adataToMap(adata, path, studyName):
     # tsne, umap, spatial coordinates
     if adata.obsm is not None:
@@ -218,7 +213,7 @@ def adataToMap(adata, path, studyName):
             df.to_csv(join(path, map_file), sep='\t')
             buildsjson_map(join(path, map_file), map_type, df_meta, studyName, label)
 
-
+# export cluster results to tsv file
 def adataToCluster (adata, path, studyName, assayDataset):
     df = pd.DataFrame()
     cluster_file = 'cluster.tsv'
@@ -259,6 +254,16 @@ def adataToCluster (adata, path, studyName, assayDataset):
         df.to_csv(join(path, cluster_file), sep='\t')
         buildsjson_cluster(join(path, cluster_file), df_meta, studyName, label)
 
+# export all metadata except cluster results to tsv file
+def adataToMetadata (adata, path, studyName):
+    df = adata.var
+    metafile = 'meta.tsv'
+    if 'leiden' in df:
+        df.drop('leiden', axis=1)
+    if 'louvain' in df:
+        df.drop('louvain', axis=1)
+    df.to_csv(metaName, sep='\t')
+    buildsjson_phenotype(metaName, studyName, label="cell metadata")
 
 def starfishExpressionMatrixToXena(mat, path, studyName):
     """
