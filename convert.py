@@ -161,6 +161,12 @@ def adataToXena(adata, path, studyName, transpose = True, metaPara = None, geneC
     assayDataset = expfile
     adataToCluster(adata, path, studyName, assayDataset)  
 
+def adataToMetadata (adata, path, studyName):
+    df = pd.DataFrame()
+    metafile = 'meta.tsv'
+    adata.var.loc[:, ~adata.var.columns.isin(['leiden', 'louvain'])].to_csv(metaName, sep='\t')
+    buildsjson_phenotype(metaName, studyName, label="cell metadata")
+
 def adataToMap(adata, path, studyName):
     # tsne, umap, spatial coordinates
     if adata.obsm is not None:
