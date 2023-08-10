@@ -256,8 +256,10 @@ def adataToCluster (adata, path, studyName, assayDataset):
 
 # export all metadata except cluster results to tsv file
 def adataToMetadata (adata, path, studyName):
-    df = adata.var
     metafile = 'meta.tsv'
+    metaName = join(path, metafile)
+    
+    df = adata.var
     if 'leiden' in df:
         df.drop('leiden', axis=1)
     if 'louvain' in df:
