@@ -164,7 +164,7 @@ def adataToXena(adata, path, studyName, transpose = True, metaPara = None, geneC
 def adataToMetadata (adata, path, studyName):
     df = pd.DataFrame()
     metafile = 'meta.tsv'
-    adata.var.loc[:, ~adata.var.columns.isin(['leiden', 'louvain'])].to_csv(metaName, sep='\t')
+    adata.obs.loc[:, ~adata.var.columns.isin(['leiden', 'louvain'])].to_csv(metaName, sep='\t')
     buildsjson_phenotype(metaName, studyName, label="cell metadata")
 
 def adataToMap(adata, path, studyName):
