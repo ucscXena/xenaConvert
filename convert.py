@@ -259,7 +259,7 @@ def adataToMetadata (adata, path, studyName):
     metafile = 'meta.tsv'
     metaName = join(path, metafile)
     
-    df = adata.var
+    df = adata.obs
     if 'leiden' in df:
         df.drop('leiden', axis=1)
     if 'louvain' in df:
