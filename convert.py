@@ -261,9 +261,9 @@ def adataToMetadata (adata, path, studyName):
     
     df = adata.obs
     if 'leiden' in df:
-        df.drop('leiden', axis=1)
+        df.drop('leiden', axis=1, inplace=True)
     if 'louvain' in df:
-        df.drop('louvain', axis=1)
+        df.drop('louvain', axis=1, inplace=True)
     df.to_csv(metaName, sep='\t')
     buildsjson_phenotype(metaName, studyName, label="cell metadata")
 
