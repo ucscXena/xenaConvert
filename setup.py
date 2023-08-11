@@ -4,7 +4,7 @@ setup(name='xenaConvert',
       version='0.1',
       description='Python Utilities',
       url='https://github.com/ucscXena/xenaConvert',
-      py_modules = ['convert'],
+      py_modules = ['xenaConvert'],
       install_requires=[
         'pandas',
         'scanpy',
