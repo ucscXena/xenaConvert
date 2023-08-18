@@ -329,12 +329,12 @@ def loomToXena(matrixFname, outputpath, studyName, transpose = True):
     adata = sc.read(matrixFname, first_column_names=True)
     adataToXena(adata, outputpath, studyName, transpose = transpose)
 
-def h5adToXena(h5adFname, outputpath, studyName, basic_analysis = False):
+def h5adToXena(h5adFname, outputpath, studyName, basicAnalysis = False):
     """
     Given a h5ad file, write dataset to a dataset directory under path.
     """
     adata = sc.read_h5ad(h5adFname)
-    if (basic_analysis):
+    if (basicAnalysis):
         adata = basic_analysis(adata)
     adataToXena(adata, outputpath, studyName)
 
