@@ -224,6 +224,7 @@ def adataToCluster (adata, path, studyName, assayDataset):
         if cluster == 'leiden':
             df['leiden'] = adata.obs['leiden']
             feature = 'leiden'
+            label = 'leiden'
             assay = 'scanpy leiden'
             assayDataset = assayDataset
             assayDatasetLabel = 'scRNA-seq'
@@ -232,6 +233,7 @@ def adataToCluster (adata, path, studyName, assayDataset):
         elif cluster == 'louvain':
             df['louvain'] = adata.obs['louvain']
             feature = 'louvain'
+            label = 'louvain'
             assay = 'scanpy louvain'
             assayDataset = assayDataset
             assayDatasetLabel = 'scRNA-seq'
@@ -241,6 +243,7 @@ def adataToCluster (adata, path, studyName, assayDataset):
 
         df_meta.append({
             'feature': feature,
+            'label': label,
             'assay': assay,
             'assayParameter': assayParameter,
             'assayDataset': {
@@ -254,15 +257,15 @@ def adataToCluster (adata, path, studyName, assayDataset):
         df.to_csv(join(path, cluster_file), sep='\t')
         buildsjson_cluster(join(path, cluster_file), df_meta, studyName, label)
 
-# export all metadata except cluster results to tsv file
+# export all metadata except leiden, louvain to tsv file
 def adataToMetadata (adata, path, studyName):
     metafile = 'meta.tsv'
     metaName = join(path, metafile)
     
     df = adata.obs
-    if 'leiden' in df:
+    if 'leiden' in df.columns:
         df.drop('leiden', axis=1, inplace=True)
-    if 'louvain' in df:
+    if 'louvain' in df.columns:
         df.drop('louvain', axis=1, inplace=True)
     df.to_csv(metaName, sep='\t')
     buildsjson_phenotype(metaName, studyName, label="cell metadata")
