@@ -357,6 +357,9 @@ def basic_analysis(adata, normalization = True):
     #PCA
     sc.tl.pca(adata, svd_solver='arpack')
 
+    # neighors
+    sc.pp.neighbors(adata, n_pcs=20)
+
     # UMAP 3D
     import umap
     # run umap in dense mode  https://www.nature.com/articles/s41587-020-00801-7
@@ -365,7 +368,6 @@ def basic_analysis(adata, normalization = True):
     adata.obsm['X_umap'] = embedding.embedding_
 
     # clustering
-    sc.pp.neighbors(adata, n_pcs=20)
     sc.tl.leiden(adata)
     sc.tl.louvain(adata)
     return adata
