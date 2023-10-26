@@ -54,7 +54,21 @@ def buildsjson_map (output, map_type, map_meta, cohort, label = None):
     json.dump(J, fout, indent = 4)
     fout.close()
 
-def buildsjson_cluster(output, cluster_meta, cohort, label = None):
+def writeFeatureSetting(features, filename):
+    fout = open(filename, 'w')
+    fout.write("feature\tattribute\tvalue\n")
+    for feature in features:
+        fout.write(feature + "\tvalueType\tcategory\n")
+    fout.close()
+
+    fout = open(filename +".json", 'w')
+    J={}
+    J["type"] = "clinicalFeature"
+    json.dump(J, fout, indent = 4)
+    fout.close()
+
+def buildsjson_cluster(path, cluster_file, cluster_meta, cohort, cluster_features, label = None):
+    output =  join(path, cluster_file)
     fout = open(output +'.json', 'w')
     J = {}
     J['type'] ='clinicalMatrix'
@@ -65,7 +79,9 @@ def buildsjson_cluster(output, cluster_meta, cohort, label = None):
         J['label'] = os.path.basename(output)
     J['cohort'] = cohort
     J['version'] = datetime.date.today().isoformat()
+    J[':clinicalFeature'] = "featureSetting.tsv"
     J['cluster'] = cluster_meta
+    writeFeatureSetting(cluster_features, join(path, "featureSetting.tsv"))
     json.dump(J, fout, indent = 4)
     fout.close()
 
@@ -147,9 +163,9 @@ def adataToXena(adata, path, studyName, transpose = True, metaPara = None, geneC
     metafile = 'meta.tsv'
     metaName = join(path, metafile)
     if (transpose):
-        adata.obs.loc[:, ~adata.obs.columns.isin(['leiden', 'louvain'])].to_csv(metaName, sep='\t')
+        adata.obs.loc[:, ~adata.obs.columns.isin(['leiden', 'louvain', 'kmeans'])].to_csv(metaName, sep='\t')
     else:
-        adata.var.loc[:, ~adata.var.columns.isin(['leiden', 'louvain'])].to_csv(metaName, sep='\t')
+        adata.var.loc[:, ~adata.var.columns.isin(['leiden', 'louvain', 'kmeans'])].to_csv(metaName, sep='\t')
 
     # build cell meta data .json file
     buildsjson_phenotype(metaName, studyName, label="cell metadata")
@@ -168,7 +184,9 @@ def adataToMap(adata, path, studyName):
         import numpy
 
         for map in adata.obsm.keys():
-            cols =[]
+            row, col = adata.obsm[map].shape
+            col = min(col, 3)
+
             if map == 'X_umap':
                 mapName = "umap"
                 map_type = 'embedding'
@@ -180,28 +198,30 @@ def adataToMap(adata, path, studyName):
                 label = 'tsne'
                 map_file =  'tsne.tsv'
             elif map == 'X_spatial':
-                mapName = 'spatial_map'
+                mapName = 'spatial'
                 map_type = 'spatial'
                 label = 'spatial map'
                 map_file =  'spatial_map.tsv'
-            elif map == 'spatial': # visium
-                mapName = 'spatial_map'
+            elif map == 'spatial' and col == 2:
+                mapName = 'spatial_2D'
                 map_type = 'spatial'
                 label = 'spatial map'
                 map_file =  'spatial_map.tsv'
+            elif map == 'spatial' and col == 3:
+                mapName = 'spatial_3D'
+                map_type = 'spatial'
+                label = 'spatial map'
+                map_file = 'spatial_map.tsv'
             else:
                 print("unrecognized or ignored map:", map)
                 continue
 
-            row,col = adata.obsm[map].shape
-            col = min(col, 3)
-
+            cols =[]
             for i in range (0, col):
                 colName = dim_name(mapName, i)
                 cols.append(colName)
-
+                        
             df = pd.DataFrame(adata.obsm[map][:,range(col)], columns=cols)
-
 
             df = df.set_index(adata.obs.index)
             df_meta = [{
@@ -219,43 +239,40 @@ def adataToCluster (adata, path, studyName, assayDataset):
     cluster_file = 'cluster.tsv'
     label = 'cell clusters'
     df_meta = []
+    cluster_features =[]
 
     for cluster in adata.obs.keys():
         if cluster == 'leiden':
             df['leiden'] = adata.obs['leiden']
             feature = 'leiden'
             label = 'leiden'
-            assay = 'scanpy leiden'
-            assayDataset = assayDataset
-            assayDatasetLabel = 'scRNA-seq'
-            assayParameter = 'sc.tl.leiden(adata)'
+            assay = 'leiden'
 
         elif cluster == 'louvain':
             df['louvain'] = adata.obs['louvain']
             feature = 'louvain'
             label = 'louvain'
-            assay = 'scanpy louvain'
-            assayDataset = assayDataset
-            assayDatasetLabel = 'scRNA-seq'
-            assayParameter = 'sc.tl.louvain(adata)'
+            assay = 'louvain'
+        
+        elif cluster == 'kmeans':
+            df['kmeans'] = adata.obs['kmeans']
+            feature = 'kmeans'
+            label = 'kmeans'
+            assay = 'kmeans'
+
         else:
             continue
 
         df_meta.append({
             'feature': feature,
             'label': label,
-            'assay': assay,
-            'assayParameter': assayParameter,
-            'assayDataset': {
-                'host': '.',
-                'name': assayDataset
-            },
-            'assayDatasetLabel': assayDatasetLabel
+            'assay': assay
         })
+        cluster_features.append(feature)
 
     if len(df.columns) >0:
         df.to_csv(join(path, cluster_file), sep='\t')
-        buildsjson_cluster(join(path, cluster_file), df_meta, studyName, label)
+        buildsjson_cluster(path, cluster_file, df_meta, studyName, cluster_features, label)
 
 # export all metadata except leiden, louvain to tsv file
 def adataToMetadata (adata, path, studyName):
