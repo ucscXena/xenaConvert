@@ -179,6 +179,9 @@ def adataToXena(adata, path, studyName, transpose = True, metaPara = None, geneC
 
 # export tsne, umap and spatial map coordinates (if any exists) to tsv file
 def adataToMap(adata, path, studyName):
+    if not isdir(path):
+        os.makedirs(path)
+    
     # tsne, umap, spatial coordinates
     if adata.obsm is not None:
         import numpy
@@ -235,6 +238,9 @@ def adataToMap(adata, path, studyName):
 
 # export cluster results to tsv file
 def adataToCluster (adata, path, studyName, assayDataset):
+    if not isdir(path):
+        os.makedirs(path)
+
     df = pd.DataFrame()
     cluster_file = 'cluster.tsv'
     label = 'cell clusters'
@@ -276,6 +282,9 @@ def adataToCluster (adata, path, studyName, assayDataset):
 
 # export all metadata except leiden, louvain to tsv file
 def adataToMetadata (adata, path, studyName):
+    if not isdir(path):
+        os.makedirs(path)
+
     metafile = 'meta.tsv'
     metaName = join(path, metafile)
     
