@@ -92,7 +92,7 @@ def anndataMatrixToTsv(adata, matFname, transpose = True, geneColumn = "var.inde
     import pandas as pd
     import scipy.sparse
 
-    if rawX:
+    if rawX is not None:
         mat = rawX
     else:
         mat = adata.X
