@@ -85,14 +85,17 @@ def buildsjson_cluster(path, cluster_file, cluster_meta, cohort, cluster_feature
     json.dump(J, fout, indent = 4)
     fout.close()
 
-def anndataMatrixToTsv(adata, matFname, transpose = True, geneColumn = "var.index"):
+def anndataMatrixToTsv(adata, matFname, transpose = True, geneColumn = "var.index", rawX = None):
     """
     write adata expression matrix to .tsv file"
     """
     import pandas as pd
     import scipy.sparse
 
-    mat = adata.X
+    if rawX:
+        mat = rawX
+    else:
+        mat = adata.X
     var = adata.var
     obs = adata.obs
 
@@ -138,7 +141,7 @@ def anndataMatrixToTsv(adata, matFname, transpose = True, geneColumn = "var.inde
     ofh.close()
 
 
-def adataToXena(adata, path, studyName, transpose = True, metaPara = None, geneColumn = "var.index"):
+def adataToXena(adata, path, studyName, transpose = True, metaPara = None, geneColumn = "var.index", rawX = None):
     """
     Given an anndata (adata) object, write dataset to a dataset directory under path.
     """
@@ -152,9 +155,9 @@ def adataToXena(adata, path, studyName, transpose = True, metaPara = None, geneC
     if isfile(matName):
         overwrite  = input("%s already exists. Overwriting existing files? Yes or No: " % matName)
         if overwrite.upper() == "YES":
-            anndataMatrixToTsv(adata, matName, transpose = transpose, geneColumn = geneColumn)
+            anndataMatrixToTsv(adata, matName, transpose = transpose, geneColumn = geneColumn, rawX = rawX)
     else:
-        anndataMatrixToTsv(adata, matName, transpose = transpose, geneColumn = geneColumn)
+        anndataMatrixToTsv(adata, matName, transpose = transpose, geneColumn = geneColumn, rawX = rawX)
     
     # build expression data .json file
     buildsjson_scRNA_geneExp(matName, studyName, metaPara = metaPara)
@@ -390,7 +393,8 @@ def basic_analysis(adata, normalization = True):
     import umap
     # run umap in dense mode  https://www.nature.com/articles/s41587-020-00801-7
     dens_lambda = 1 # default = 2
-    embedding = umap.UMAP(densmap=True, n_components = n_components, dens_lambda= dens_lambda).fit(adata.obsm['X_pca'])
+    #embedding = umap.UMAP(densmap=True, n_components = n_components, dens_lambda= dens_lambda).fit(adata.obsm['X_pca'])
+    embedding = umap.UMAP(densmap=False, n_components = n_components).fit(adata.obsm['X_pca'])
     adata.obsm['X_umap'] = embedding.embedding_
 
     # clustering
