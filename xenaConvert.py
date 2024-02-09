@@ -398,8 +398,8 @@ def basic_analysis(adata, normalization = True):
     adata.obsm['X_umap'] = embedding.embedding_
 
     # clustering
-    sc.tl.leiden(adata)
     sc.tl.louvain(adata)
+    sc.tl.leiden(adata)
     return adata
 
 def visiumToXena(visiumDataDir, count_file, outputpath, studyName):
