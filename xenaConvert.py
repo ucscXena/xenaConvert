@@ -402,7 +402,7 @@ def basic_analysis(adata, normalization = True):
     sc.tl.leiden(adata)
     return adata
 
-def visiumToXenaCountMatrix (visiumDataDir, count_file, outputpath, studyName):
+def visiumToXenaCountMatrix (visiumDataDir, outputpath, studyName):
     """
     Given a visium spaceranger output data directory, write dataset to a dataset directory under path.
     """
