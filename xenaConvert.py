@@ -408,20 +408,75 @@ def visiumToXena(visiumDataDir, count_file, outputpath, studyName):
     """
     # https://scanpy.readthedocs.io/en/stable/api/scanpy.read_visium.html
 
-    if not (count_file.endswith("filtered_feature_bc_matrix.h5")):
-        print (count_file, "is not the correct format")
-        sys.exit()
-    else:
-        print (count_file)
+        posCountfiles = ["filtered_feature_bc_matrix.h5", "matrix.mtx.gz", "matrix.mtx", "raw_feature_bc_matrix.h5"]
 
-    adata = sc.read_visium(visiumDataDir, count_file = count_file)
+    for count_file in posCountfiles:
+        if os.path.exists(os.path.join(visiumDataDir, count_file)):
+            print(count_file)
+
+            if count_file.endswith(".h5"):
+                adata = sc.read_visium(visiumDataDir, count_file = count_file)        
+            elif count_file.endswith(".mtx.gz"):
+                adata = sc.read_mtx( os.path.join(visiumDataDir, 'matrix.mtx.gz'))
+                adata_bc=pd.read_csv(os.path.join(visiumDataDir, 'barcodes.tsv.gz'), header=None)
+                adata_features=pd.read_csv(os.path.join(visiumDataDir, 'features.tsv.gz'), header=None)
+                adata= adata.T
+                adata.obs['cell_id']= adata_bc[0].to_list()
+                adata.var['gene_name']= adata_features[0].tolist()
+                adata.var.index= adata.var['gene_name']
+            elif count_file.endswith(".mtx"):
+                adata = sc.read_mtx( os.path.join(visiumDataDir, 'matrix.mtx'))
+                adata_bc=pd.read_csv(os.path.join(visiumDataDir, 'barcodes.tsv'), header=None)
+                adata_features=pd.read_csv(os.path.join(visiumDataDir, 'features.tsv'), header=None)
+                adata= adata.T
+                adata.obs['cell_id']= adata_bc[0].to_list()
+                adata.var['gene_name']= adata_features[0].tolist()
+                adata.var.index= adata.var['gene_name']
+            else:
+                print (count_file, "is not the correct format")
+                return
+
+            adata = basic_analysis(adata)
+        
+            metaPara = {}
+            metaPara['unit'] = "LogNorm(count+1)"
+            metaPara['wrangling_procedure'] = "download "+ count_file + ", normalize count data using scanpy sc.pp.normalize_total(adata), then sc.pp.log1p(adata)"
+            adataToXena(adata, outputpath, studyName, metaPara = metaPara)
+            return adata
+
+def visium_spatial(visiumDataDir, outputdir, studyName, imagePath):
+    if not os.path.exists(outputdir):
+        os.mkdir(outputdir)
     
-    adata = basic_analysis(adata)
+    inputfile = os.path.join(visiumDataDir,'tissue_positions_list.csv')
+    data = pandas.read_csv(inputfile, names = ["barcode", "in_tissue", "array_row", "array_col", "pxl_row_in_fullres", "pxl_col_in_fullres"])
+    data.to_csv(os.path.join(outputdir, 'tissue_positions_list.tsv'), sep='\t', index = False)
+    scale = json.loads(open(os.path.join(visiumDataDir,'scalefactors_json.json'), 'r').read())
 
-    metaPara = {}
-    metaPara['unit'] = "LogNorm(count+1)"
-    metaPara['wrangling_procedure'] = "download filtered_feature_bc_matrix.h5, normalize count data using scanpy sc.pp.normalize_total(adata), then sc.pp.log1p(adata)"
-    adataToXena(adata, outputpath, studyName, metaPara = metaPara)
+    J={}
+    J["cohort"] = studyName
+    J["label"] = "tissue positions"
+    J["type"] = "clinicalMatrix"
+    J["bioentity"] = "spot"
+    J["dataSubType"] = "phenotype"
+    map={}
+    map["label"]="H&E"
+    map["type"]="spatial"
+    map["dimension"] = ["pxl_col_in_fullres", "pxl_row_in_fullres"]
+    map["unit"] = "pixel"
+    map["spot_diameter"] = scale["spot_diameter_fullres"]
+    map["micrometer_per_unit"] = 55/scale["spot_diameter_fullres"]
+    map["image"] = {
+        "label":"H&E",
+        "path": imagePath,
+        "image_scalef":scale["tissue_hires_scalef"],
+        "offset":[0,0],
+    }
+    J["map"]=[map]
+    fout = open(os.path.join(outputdir, "tissue_positions_list.tsv.json"), 'w')
+    fout.write(json.dumps(J, indent =4))
+    fout.close()
+    return data
 
 def vizgenToXena(vizgenDataDir, outputpath, studyName):
     """
