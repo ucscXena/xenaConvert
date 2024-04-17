@@ -408,7 +408,7 @@ def visiumToXenaCountMatrix (visiumDataDir, count_file, outputpath, studyName):
     """
     # https://scanpy.readthedocs.io/en/stable/api/scanpy.read_visium.html
 
-        posCountfiles = ["filtered_feature_bc_matrix.h5", "matrix.mtx.gz", "matrix.mtx", "raw_feature_bc_matrix.h5"]
+    posCountfiles = ["filtered_feature_bc_matrix.h5", "matrix.mtx.gz", "matrix.mtx", "raw_feature_bc_matrix.h5"]
 
     for count_file in posCountfiles:
         if os.path.exists(os.path.join(visiumDataDir, count_file)):
