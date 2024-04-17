@@ -442,6 +442,7 @@ def visiumToXenaCountMatrix (visiumDataDir, outputpath, studyName):
             metaPara = {}
             metaPara['unit'] = "LogNorm(count+1)"
             metaPara['wrangling_procedure'] = "download "+ count_file + ", normalize count data using scanpy sc.pp.normalize_total(adata), then sc.pp.log1p(adata)"
+            metaPara["assay"] = "10x Visium"
             adataToXena(adata, outputpath, studyName, metaPara = metaPara)
             return adata
 
