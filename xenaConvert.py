@@ -423,6 +423,7 @@ def visiumToXenaCountMatrix (visiumDataDir, outputpath, studyName):
                 adata= adata.T
                 adata.obs['cell_id']= adata_bc[0].to_list()
                 adata.var['gene_name']= adata_features[0].tolist()
+                adata.obs.index = adata.obs['cell_id']
                 adata.var.index= adata.var['gene_name']
             elif count_file.endswith(".mtx"):
                 adata = sc.read_mtx( os.path.join(visiumDataDir, 'matrix.mtx'))
@@ -466,12 +467,12 @@ def visium_spatial(visiumDataDir, outputdir, studyName, imagePath):
     map["unit"] = "pixel"
     map["spot_diameter"] = scale["spot_diameter_fullres"]
     map["micrometer_per_unit"] = 55/scale["spot_diameter_fullres"]
-    map["image"] = {
+    map["image"] = [{
         "label":"H&E",
         "path": imagePath,
         "image_scalef":scale["tissue_hires_scalef"],
         "offset":[0,0],
-    }
+    }]
     J["map"]=[map]
     fout = open(os.path.join(outputdir, "tissue_positions_list.tsv.json"), 'w')
     fout.write(json.dumps(J, indent =4))
