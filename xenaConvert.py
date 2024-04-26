@@ -402,7 +402,7 @@ def basic_analysis(adata, normalization = True):
     sc.tl.leiden(adata)
     return adata
 
-def visiumToXenaCountMatrix (visiumDataDir, outputpath, studyName):
+def visiumToXenaCountMatrix (visiumDataDir, outputpath, studyName, assay="10x Visium"):
     """
     Given a visium spaceranger output data directory, write dataset to a dataset directory under path.
     """
@@ -442,7 +442,8 @@ def visiumToXenaCountMatrix (visiumDataDir, outputpath, studyName):
             metaPara = {}
             metaPara['unit'] = "LogNorm(count+1)"
             metaPara['wrangling_procedure'] = "download "+ count_file + ", normalize count data using scanpy sc.pp.normalize_total(adata), then sc.pp.log1p(adata)"
-            metaPara["assay"] = "10x Visium"
+            metaPara["assay"] = assay
+            metaPara["bioentity"] = "spot"
             adataToXena(adata, outputpath, studyName, metaPara = metaPara)
             return adata
 
