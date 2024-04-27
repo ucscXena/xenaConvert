@@ -370,6 +370,13 @@ def h5adToXena(h5adFname, outputpath, studyName, basicAnalysis = False):
         adata = basic_analysis(adata)
     adataToXena(adata, outputpath, studyName)
 
+def log1p_normalization(adata):
+    sc.pp.filter_cells(adata, min_genes=0)
+    sc.pp.filter_cells(adata, min_counts=0)
+    sc.pp.normalize_total(adata, inplace=True)
+    sc.pp.log1p(adata)
+    return adata
+
 def basic_analysis(adata, normalization = True):
     # normalize_total_count (or intensity), log1p, pca, 3D umap (dense) and clustering (leiden, louvain)
 
@@ -402,33 +409,32 @@ def basic_analysis(adata, normalization = True):
     sc.tl.leiden(adata)
     return adata
 
-def visiumToXenaCountMatrix (visiumDataDir, outputpath, studyName, assay="10x Visium"):
+def tenXToXenaCountMatrix (tenXDataDir, outputpath, studyName, assay="10x Visium"):
     """
-    Given a visium spaceranger output data directory, write dataset to a dataset directory under path.
+    Given a 10x output data directory, write dataset to a dataset directory under path.
     """
-    # https://scanpy.readthedocs.io/en/stable/api/scanpy.read_visium.html
 
     posCountfiles = ["filtered_feature_bc_matrix.h5", "matrix.mtx.gz", "matrix.mtx", "raw_feature_bc_matrix.h5"]
 
     for count_file in posCountfiles:
-        if os.path.exists(os.path.join(visiumDataDir, count_file)):
+        if os.path.exists(os.path.join(tenXDataDir, count_file)):
             print(count_file)
 
             if count_file.endswith(".h5"):
-                adata = sc.read_visium(visiumDataDir, count_file = count_file)        
+                adata = sc.read_10x_h5(os.path.join(tenXDataDir, count_file))        
             elif count_file.endswith(".mtx.gz"):
-                adata = sc.read_mtx( os.path.join(visiumDataDir, 'matrix.mtx.gz'))
-                adata_bc=pd.read_csv(os.path.join(visiumDataDir, 'barcodes.tsv.gz'), header=None)
-                adata_features=pd.read_csv(os.path.join(visiumDataDir, 'features.tsv.gz'), header=None)
+                adata = sc.read_mtx( os.path.join(tenXDataDir, 'matrix.mtx.gz'))
+                adata_bc=pd.read_csv(os.path.join(tenXDataDir, 'barcodes.tsv.gz'), header=None)
+                adata_features=pd.read_csv(os.path.join(tenXDataDir, 'features.tsv.gz'), header=None)
                 adata= adata.T
                 adata.obs['cell_id']= adata_bc[0].to_list()
                 adata.var['gene_name']= adata_features[0].tolist()
                 adata.obs.index = adata.obs['cell_id']
                 adata.var.index= adata.var['gene_name']
             elif count_file.endswith(".mtx"):
-                adata = sc.read_mtx( os.path.join(visiumDataDir, 'matrix.mtx'))
-                adata_bc=pd.read_csv(os.path.join(visiumDataDir, 'barcodes.tsv'), header=None)
-                adata_features=pd.read_csv(os.path.join(visiumDataDir, 'features.tsv'), header=None)
+                adata = sc.read_mtx( os.path.join(tenXDataDir, 'matrix.mtx'))
+                adata_bc=pd.read_csv(os.path.join(tenXDataDir, 'barcodes.tsv'), header=None)
+                adata_features=pd.read_csv(os.path.join(tenXDataDir, 'features.tsv'), header=None)
                 adata= adata.T
                 adata.obs['cell_id']= adata_bc[0].to_list()
                 adata.var['gene_name']= adata_features[0].tolist()
@@ -437,7 +443,7 @@ def visiumToXenaCountMatrix (visiumDataDir, outputpath, studyName, assay="10x Vi
                 print (count_file, "is not the correct format")
                 return
 
-            adata = basic_analysis(adata)
+            adata = log1p_normalization(adata)
         
             metaPara = {}
             metaPara['unit'] = "LogNorm(count+1)"
