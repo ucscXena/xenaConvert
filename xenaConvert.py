@@ -18,7 +18,6 @@ def buildsjson_scRNA_geneExp(output, cohort, label = None, metaPara = None):
         J['label'] = os.path.basename(output)
     if metaPara:
         J.update(metaPara)
-    J["colNormalization"] = True
     J['cohort'] = cohort
     J['version'] = datetime.date.today().isoformat()
     json.dump(J, fout, indent = 4)
@@ -451,9 +450,12 @@ def tenXToXenaCountMatrix (tenXDataDir, outputdir, studyName, assay, normalizati
             metaPara = {}
             if normalization:
                 metaPara['unit'] = "LogNorm(count+1)"
+                metaPara['wrangling_procedure'] = "download "+ count_file + ", normalize count data using scanpy sc.pp.normalize_total(adata), then sc.pp.log1p(adata)"
+                metaPara["colNormalization"] = True
             else:
                 metaPara['unit'] = "count"
-            metaPara['wrangling_procedure'] = "download "+ count_file + ", normalize count data using scanpy sc.pp.normalize_total(adata), then sc.pp.log1p(adata)"
+                metaPara['wrangling_procedure'] = "download "+ count_file + ", no normalization is performed"
+                metaPara["colNormalization"] = "log2(x)"
             metaPara["assay"] = assay
             metaPara["bioentity"] = "spot"
             metaPara["label"] = assay + " gene expression"
