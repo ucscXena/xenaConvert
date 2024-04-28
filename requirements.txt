@@ -3,3 +3,5 @@ scanpy
 umap-learn
 leidenalg
 louvain
+pyarrow
+fastparquet

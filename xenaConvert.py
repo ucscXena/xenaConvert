@@ -409,10 +409,12 @@ def basic_analysis(adata, normalization = True):
     sc.tl.leiden(adata)
     return adata
 
-def tenXToXenaCountMatrix (tenXDataDir, outputpath, studyName, assay="10x Visium"):
+def tenXToXenaCountMatrix (tenXDataDir, outputdir, studyName, assay):
     """
     Given a 10x output data directory, write dataset to a dataset directory under path.
     """
+    if not os.path.exists(outputdir):
+        os.mkdir(outputdir)
 
     posCountfiles = ["filtered_feature_bc_matrix.h5", "matrix.mtx.gz", "matrix.mtx", "raw_feature_bc_matrix.h5"]
 
@@ -450,16 +452,28 @@ def tenXToXenaCountMatrix (tenXDataDir, outputpath, studyName, assay="10x Visium
             metaPara['wrangling_procedure'] = "download "+ count_file + ", normalize count data using scanpy sc.pp.normalize_total(adata), then sc.pp.log1p(adata)"
             metaPara["assay"] = assay
             metaPara["bioentity"] = "spot"
-            adataToXena(adata, outputpath, studyName, metaPara = metaPara)
+            adataToXena(adata, outputdir, studyName, metaPara = metaPara)
             return adata
 
-def visium_spatial(visiumDataDir, outputdir, studyName, imagePath):
+def visium_spatial(visiumDataDir, outputdir, studyName):
     if not os.path.exists(outputdir):
         os.mkdir(outputdir)
     
-    inputfile = os.path.join(visiumDataDir,'tissue_positions_list.csv')
-    data = pandas.read_csv(inputfile, names = ["barcode", "in_tissue", "array_row", "array_col", "pxl_row_in_fullres", "pxl_col_in_fullres"])
-    data.to_csv(os.path.join(outputdir, 'tissue_positions_list.tsv'), sep='\t', index = False)
+    posPositionfiles = ["tissue_positions_list.csv", "tissue_positions.parquet"]
+
+    for position_file in posPositionfiles:
+        if os.path.exists(os.path.join(visiumDataDir, position_file)):
+            print(position_file)
+
+            inputfile = os.path.join(visiumDataDir, position_file)
+
+            if position_file == "tissue_positions_list.csv":
+                data = pandas.read_csv(inputfile, names = ["barcode", "in_tissue", "array_row", "array_col", "pxl_row_in_fullres", "pxl_col_in_fullres"])
+            elif position_file == "tissue_positions.parquet":
+                data = pd.read_parquet(inputfile)
+
+
+    data.to_csv(os.path.join(outputdir, 'tissue_positions.tsv'), sep='\t', index = False)
     scale = json.loads(open(os.path.join(visiumDataDir,'scalefactors_json.json'), 'r').read())
 
     J={}
@@ -469,20 +483,24 @@ def visium_spatial(visiumDataDir, outputdir, studyName, imagePath):
     J["bioentity"] = "spot"
     J["dataSubType"] = "phenotype"
     map={}
-    map["label"]="H&E"
+    map["label"]="enter map label here"
     map["type"]="spatial"
     map["dimension"] = ["pxl_col_in_fullres", "pxl_row_in_fullres"]
     map["unit"] = "pixel"
     map["spot_diameter"] = scale["spot_diameter_fullres"]
-    map["micrometer_per_unit"] = 55/scale["spot_diameter_fullres"]
+    if position_file == "tissue_positions_list.csv":
+        map["micrometer_per_unit"] = 55/scale["spot_diameter_fullres"]
+    elif position_file == "tissue_positions.parquet":
+        map["micrometer_per_unit"] = scale["microns_per_pixel"]
     map["image"] = [{
-        "label":"H&E",
-        "path": imagePath,
-        "image_scalef":scale["tissue_hires_scalef"],
+        "label":"enter image label here",
+        "path": "enter image path here",
+        "image_scalef":"factor to convert pixel position in position file to pixel position in image. \
+            if using full resolution image, the factor =1",
         "offset":[0,0],
     }]
     J["map"]=[map]
-    fout = open(os.path.join(outputdir, "tissue_positions_list.tsv.json"), 'w')
+    fout = open(os.path.join(outputdir, "tissue_positions.tsv.json"), 'w')
     fout.write(json.dumps(J, indent =4))
     fout.close()
     return data
