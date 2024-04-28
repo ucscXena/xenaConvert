@@ -409,7 +409,7 @@ def basic_analysis(adata, normalization = True):
     sc.tl.leiden(adata)
     return adata
 
-def tenXToXenaCountMatrix (tenXDataDir, outputdir, studyName, assay):
+def tenXToXenaCountMatrix (tenXDataDir, outputdir, studyName, assay, normalization = True):
     """
     Given a 10x output data directory, write dataset to a dataset directory under path.
     """
@@ -445,10 +445,14 @@ def tenXToXenaCountMatrix (tenXDataDir, outputdir, studyName, assay):
                 print (count_file, "is not the correct format")
                 return
 
-            adata = log1p_normalization(adata)
+            if normalization:
+                adata = log1p_normalization(adata)
         
             metaPara = {}
-            metaPara['unit'] = "LogNorm(count+1)"
+            if normalization:
+                metaPara['unit'] = "LogNorm(count+1)"
+            else:
+                metaPara['unit'] = "count"
             metaPara['wrangling_procedure'] = "download "+ count_file + ", normalize count data using scanpy sc.pp.normalize_total(adata), then sc.pp.log1p(adata)"
             metaPara["assay"] = assay
             metaPara["bioentity"] = "spot"
