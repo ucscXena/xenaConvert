@@ -455,17 +455,17 @@ def tenXToXenaCountMatrix (tenXDataDir, outputdir, studyName, assay):
             adataToXena(adata, outputdir, studyName, metaPara = metaPara)
             return adata
 
-def visium_spatial(visiumDataDir, outputdir, studyName):
+def visium_spatial(visium_spatial_dir, outputdir, studyName):
     if not os.path.exists(outputdir):
         os.mkdir(outputdir)
     
     posPositionfiles = ["tissue_positions_list.csv", "tissue_positions.parquet"]
 
     for position_file in posPositionfiles:
-        if os.path.exists(os.path.join(visiumDataDir, position_file)):
+        if os.path.exists(os.path.join(visium_spatial_dir, position_file)):
             print(position_file)
 
-            inputfile = os.path.join(visiumDataDir, position_file)
+            inputfile = os.path.join(visium_spatial_dir, position_file)
 
             if position_file == "tissue_positions_list.csv":
                 data = pandas.read_csv(inputfile, names = ["barcode", "in_tissue", "array_row", "array_col", "pxl_row_in_fullres", "pxl_col_in_fullres"])
@@ -474,7 +474,7 @@ def visium_spatial(visiumDataDir, outputdir, studyName):
 
 
     data.to_csv(os.path.join(outputdir, 'tissue_positions.tsv'), sep='\t', index = False)
-    scale = json.loads(open(os.path.join(visiumDataDir,'scalefactors_json.json'), 'r').read())
+    scale = json.loads(open(os.path.join(visium_spatial_dir,'scalefactors_json.json'), 'r').read())
 
     J={}
     J["cohort"] = studyName
