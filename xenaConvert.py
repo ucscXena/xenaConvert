@@ -456,6 +456,7 @@ def tenXToXenaCountMatrix (tenXDataDir, outputdir, studyName, assay, normalizati
             metaPara['wrangling_procedure'] = "download "+ count_file + ", normalize count data using scanpy sc.pp.normalize_total(adata), then sc.pp.log1p(adata)"
             metaPara["assay"] = assay
             metaPara["bioentity"] = "spot"
+            metaPara["label"] = "gene expression"
             adataToXena(adata, outputdir, studyName, metaPara = metaPara)
             return adata
 
