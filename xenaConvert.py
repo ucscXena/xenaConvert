@@ -501,7 +501,7 @@ def visium_spatial(visium_spatial_dir, outputdir, studyName):
         "label":"enter image label here",
         "path": "enter image path here",
         "image_scalef":"factor to convert pixel position in position file to pixel position in image. \
-            if using full resolution image, the factor =1",
+        If using full resolution image, factor=1",
         "offset":[0,0],
     }]
     J["map"]=[map]
