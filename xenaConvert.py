@@ -502,8 +502,7 @@ def visium_spatial(visium_spatial_dir, outputdir, studyName):
     map["image"] = [{
         "label":"enter image label here",
         "path": "enter image path here",
-        "image_scalef":"factor to convert pixel position in position file to pixel position in image. \
-        If using full resolution image, factor=1",
+        "image_scalef": "Full_res_image: 1, tissue_hires_image: "+ scale["tissue_hires_scalef"]+ ", tissue_low_image: "+ scale["tissue_low_scalef"],
         "offset":[0,0],
     }]
     J["map"]=[map]
