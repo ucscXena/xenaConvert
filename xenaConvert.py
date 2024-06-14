@@ -382,10 +382,7 @@ def basic_analysis(adata, normalization = True):
     n_components = 3
 
     if (normalization):
-        sc.pp.filter_cells(adata, min_genes=0)
-        sc.pp.filter_cells(adata, min_counts=0)
-        sc.pp.normalize_total(adata, inplace=True)
-        sc.pp.log1p(adata)
+        adata = log1p_normalization(adata)
 
     sc.pp.highly_variable_genes(adata)
 
@@ -463,7 +460,7 @@ def tenXToXenaCountMatrix (tenXDataDir, outputdir, studyName, assay, normalizati
                 metaPara['wrangling_procedure'] = "download "+ count_file + ", no normalization is performed"
                 metaPara["colNormalization"] = "log2(x)"
             metaPara["assay"] = assay
-            metaPara["bioentity"] = "spot"
+            metaPara["bioentity"] = "cell"
             metaPara["label"] = assay + " gene expression"
             adataToXena(adata, outputdir, studyName, metaPara = metaPara)
             return adata
