@@ -409,9 +409,15 @@ def basic_analysis(adata, normalization = True):
     return adata
 
 def tenXToXenaCountMatrix (tenXDataDir, outputdir, studyName, assay, normalization = True):
+    
     """
-    Given a 10x output data directory, write dataset to a dataset directory under path.
+    Given a 10x output data directory, write dataset to the xena outputdir directory.
+
+    Args:
+        outputdir: xena output directory path
+        normalization: boolean. Whether the 10x should be normalized in the downstream analysis 
     """
+
     if not os.path.exists(outputdir):
         os.mkdir(outputdir)
 
