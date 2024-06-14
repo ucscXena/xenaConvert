@@ -176,8 +176,7 @@ def adataToXena(adata, path, studyName, transpose = True, metaPara = None, geneC
     adataToMap(adata, path, studyName)
 
     # build cluster and associated metadata
-    assayDataset = expfile
-    adataToCluster(adata, path, studyName, assayDataset)  
+    adataToCluster(adata, path, studyName)  
 
 # export tsne, umap and spatial map coordinates (if any exists) to tsv file
 def adataToMap(adata, path, studyName):
@@ -239,7 +238,7 @@ def adataToMap(adata, path, studyName):
             buildsjson_map(join(path, map_file), map_type, df_meta, studyName, label)
 
 # export cluster results to tsv file
-def adataToCluster (adata, path, studyName, assayDataset):
+def adataToCluster (adata, path, studyName):
     if not isdir(path):
         os.makedirs(path)
 
@@ -447,8 +446,7 @@ def tenXToXenaCountMatrix (tenXDataDir, outputdir, studyName, assay, normalizati
                 print (count_file, "is not the correct format")
                 return
 
-            if normalization:
-                adata = log1p_normalization(adata)
+            basic_analysis(adata, normalization)
         
             metaPara = {}
             if normalization:
