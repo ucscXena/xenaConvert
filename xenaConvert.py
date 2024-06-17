@@ -194,12 +194,12 @@ def adataToMap(adata, path, studyName):
             if map == 'X_umap':
                 mapName = "umap"
                 map_type = 'embedding'
-                label = 'umap'
+                label = 'UMAP'
                 map_file = 'umap.tsv'
             elif map == 'X_tsne':
                 mapName = "tsne"
                 map_type = 'embedding'
-                label = 'tsne'
+                label = 'TSNE'
                 map_file =  'tsne.tsv'
             elif map == 'X_spatial':
                 mapName = 'spatial'
@@ -244,7 +244,7 @@ def adataToCluster (adata, path, studyName):
 
     df = pd.DataFrame()
     cluster_file = 'cluster.tsv'
-    label = 'cell clusters'
+    datasetlabel = 'cell clusters'
     df_meta = []
     cluster_features =[]
 
@@ -279,7 +279,7 @@ def adataToCluster (adata, path, studyName):
 
     if len(df.columns) >0:
         df.to_csv(join(path, cluster_file), sep='\t')
-        buildsjson_cluster(path, cluster_file, df_meta, studyName, cluster_features, label)
+        buildsjson_cluster(path, cluster_file, df_meta, studyName, cluster_features, datasetlabel)
 
 # export all metadata except leiden, louvain to tsv file
 def adataToMetadata (adata, path, studyName):
