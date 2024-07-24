@@ -369,13 +369,14 @@ def h5adToXena(h5adFname, outputpath, studyName, basicAnalysis = False):
     adataToXena(adata, outputpath, studyName)
 
 def log1p_normalization(adata, max_fraction =0.05):
-    sc.pp.filter_cells(adata, min_genes=0)
-    sc.pp.filter_cells(adata, min_counts=0)
+    sc.pp.filter_cells(adata, min_genes=1)
+    sc.pp.filter_cells(adata, min_counts=1)
     sc.pp.normalize_total(adata, inplace=True, exclude_highly_expressed=True, max_fraction = max_fraction)
     sc.pp.log1p(adata)
     return adata
 
-def basic_analysis(adata, normalization = True, max_fraction = 0.05):
+def basic_analysis(adata, normalization = True, max_fraction = 0.05, resolution = 1 ):
+    # Higher resolution values lead to more clusters
     # normalize_total_count (or intensity), log1p, pca, 3D umap (dense) and clustering (leiden, louvain)
 
     n_components = 3
@@ -400,8 +401,8 @@ def basic_analysis(adata, normalization = True, max_fraction = 0.05):
     adata.obsm['X_umap'] = embedding.embedding_
 
     # clustering
-    sc.tl.louvain(adata)
-    sc.tl.leiden(adata)
+    sc.tl.louvain(adata, resolution = resolution)
+    sc.tl.leiden(adata, resolution = resolution)
     return adata
 
 def tenXToXenaCountMatrix (tenXDataDir, outputdir, studyName, assay, normalization = True):
