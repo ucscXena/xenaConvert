@@ -254,27 +254,48 @@ def adataToCluster (adata, path, studyName):
             feature = 'leiden'
             label = 'leiden'
             assay = 'leiden'
+            if 'leiden_DE' in adata.uns:
+                result = adata.uns['leiden_DE']
+                clusters = result['names'].dtype.names
+                DE = {cluster: list(result['names'][cluster][:20]) for cluster in clusters}
+            else:
+                DE = None
 
         elif cluster == 'louvain':
             df['louvain'] = adata.obs['louvain']
             feature = 'louvain'
             label = 'louvain'
             assay = 'louvain'
-        
+            if 'louvain_DE' in adata.uns:
+                result = adata.uns['louvain_DE']
+                clusters = result['names'].dtype.names
+                DE = {cluster: list(result['names'][cluster][:20]) for cluster in clusters}
+            else:
+                DE = None
+
         elif cluster == 'kmeans':
             df['kmeans'] = adata.obs['kmeans']
             feature = 'kmeans'
             label = 'kmeans'
             assay = 'kmeans'
-
+            DE = None
         else:
             continue
 
-        df_meta.append({
-            'feature': feature,
-            'label': label,
-            'assay': assay
-        })
+        if DE:
+            df_meta.append({
+                'feature': feature,
+                'label': label,
+                'assay': assay,
+                'DE': DE
+            })
+        else:
+            df_meta.append({
+                'feature': feature,
+                'label': label,
+                'assay': assay
+            })
+        
         cluster_features.append(feature)
 
     if len(df.columns) >0:
@@ -368,21 +389,24 @@ def h5adToXena(h5adFname, outputpath, studyName, basicAnalysis = False):
         adata = basic_analysis(adata)
     adataToXena(adata, outputpath, studyName)
 
-def log1p_normalization(adata, max_fraction =0.05):
+def log1p_normalization(adata, exclude_highly_expressed= False, max_fraction =0.05):
     sc.pp.filter_cells(adata, min_genes=1)
     sc.pp.filter_cells(adata, min_counts=1)
-    sc.pp.normalize_total(adata, inplace=True, exclude_highly_expressed=True, max_fraction = max_fraction)
+    if exclude_highly_expressed:
+        sc.pp.normalize_total(adata, inplace=True, exclude_highly_expressed=True, max_fraction = max_fraction)
+    else:
+        sc.pp.normalize_total(adata, inplace=True)
     sc.pp.log1p(adata)
     return adata
 
-def basic_analysis(adata, normalization = True, max_fraction = 0.05, resolution = 1 ):
+def basic_analysis(adata, normalization = True, exclude_highly_expressed= False, max_fraction = 0.05, resolution = 1 ):
     # Higher resolution values lead to more clusters
     # normalize_total_count (or intensity), log1p, pca, 3D umap (dense) and clustering (leiden, louvain)
 
     n_components = 3
 
     if (normalization):
-        adata = log1p_normalization(adata, max_fraction = max_fraction)
+        adata = log1p_normalization(adata, exclude_highly_expressed= exclude_highly_expressed, max_fraction = max_fraction)
 
     sc.pp.highly_variable_genes(adata)
 
@@ -400,9 +424,16 @@ def basic_analysis(adata, normalization = True, max_fraction = 0.05, resolution 
     embedding = umap.UMAP(densmap=False, n_components = n_components).fit(adata.obsm['X_pca'])
     adata.obsm['X_umap'] = embedding.embedding_
 
+    adata.var_names_make_unique()
+    
     # clustering
     sc.tl.louvain(adata, resolution = resolution)
     sc.tl.leiden(adata, resolution = resolution)
+    
+    # DE
+    sc.tl.rank_genes_groups(adata, groupby="louvain", key_added = "louvain_DE", mask_vars=adata.var.highly_variable, method="wilcoxon")
+    sc.tl.rank_genes_groups(adata, groupby="leiden", key_added = "leiden_DE", mask_vars=adata.var.highly_variable, method="wilcoxon")
+
     return adata
 
 def tenXToXenaCountMatrix (tenXDataDir, outputdir, studyName, assay, normalization = True):
